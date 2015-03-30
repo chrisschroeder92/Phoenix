@@ -39,17 +39,13 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     Gun gun;
 
-    //Gun
- //   private int gunBaseRadius;
-   // private int gunLength;
     //private Point gunPoint;
 
     private int screenWidth;
     private int screenHeight;
 
     //Paints
-    private Paint textPaint;
-    private Paint gunPaint;
+    //private Paint textPaint;
     private Paint backgroundPaint;
 
 
@@ -61,9 +57,6 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
         getHolder().addCallback(this);
 
         //textPaint = new Paint();
-
-        gunPaint = new Paint();
-        gunPaint.setColor(Color.YELLOW);
 
         backgroundPaint = new Paint();
         backgroundPaint.setColor(Color.BLACK);
@@ -80,16 +73,15 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void newGame() {
 
-        bullets = new ArrayList<Bullet>();
+        bullets = new ArrayList<>();
 
         gun = new Gun(screenWidth, screenHeight);
 
-        enemies = new Enemies(new Point(screenWidth / 2, screenHeight * 1 / 5), screenWidth / 15);
+        enemies = new Enemies(new Point(screenWidth / 2, screenHeight / 5), screenWidth / 15);
         enemies.setVelocity(screenWidth / 25);
 
         //textPaint.setTextSize(w / 20);
         //textPaint.setAntiAlias(true);
-        gunPaint.setStrokeWidth(screenWidth / 18f);
 
         if (gameOver) {
             gameOver = false;
@@ -140,10 +132,10 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                 backgroundPaint);
 
         // draw gun
-        canvas.drawCircle(gun.getX(), gun.getY(), gun.getRadius(), gunPaint);
+        canvas.drawCircle(gun.getX(), gun.getY(), gun.getRadius(), gun.getPaint());
 
         // draw gun end
-        canvas.drawRect(gun.getX() - (screenWidth / 30), gun.getY(), gun.getX() + (screenWidth / 30), gun.getY() - (screenHeight * 3 / 20), gunPaint);
+        canvas.drawRect(gun.getX() - (screenWidth / 30), gun.getY(), gun.getX() + (screenWidth / 30), gun.getY() - (screenHeight * 3 / 20), gun.getPaint());
 
         // draw enemies
         for (int i=0; i<enemies.getSize(); i++) {

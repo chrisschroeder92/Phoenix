@@ -10,7 +10,6 @@ import android.graphics.Point;
 public class Gun {
 
     private int gunBaseRadius;
-    private int gunLength;
     private Point gunPoint;
     private Paint gunPaint;
 
@@ -20,7 +19,6 @@ public class Gun {
         gunPoint = new Point(screenWidth / 2, screenHeight);
 
         gunBaseRadius = screenWidth / 8;
-        gunLength = screenHeight / 18;
 
         gunPaint = new Paint();
         gunPaint.setColor(Color.YELLOW);
@@ -50,5 +48,13 @@ public class Gun {
 
     public void setRadius(int radius){
         gunBaseRadius = radius;
+    }
+
+    public Paint getPaint(){
+        return gunPaint;
+    }
+
+    public void setPaint(Paint p){
+        gunPaint = p;
     }
 }
