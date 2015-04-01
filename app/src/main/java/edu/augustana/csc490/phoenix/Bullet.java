@@ -11,26 +11,39 @@ public class Bullet {
 
     private Point bullet;
     private int bulletSpeed;
-    private int bulletVelocityY;
     private int bulletRadius;
     private boolean bulletOnScreen;
+    private boolean enemyBullet;
     private Paint bulletPaint;
 
-    public Bullet(Point gunPoint, int screenHeight){
+    public Bullet(Point gunPoint, int screenHeight, boolean enemy){
 
         // set Point
         bullet = new Point();
-        bullet.x = gunPoint.x;
-        bullet.y = gunPoint.y - (screenHeight / 10);
 
-        bulletRadius = screenHeight / 100;
-        bulletSpeed = screenHeight / 2;
-        bulletVelocityY = (-bulletSpeed);
+        enemyBullet = enemy;
+
+        if (enemyBullet)
+        {
+            bullet.x = gunPoint.x;
+            bullet.y = gunPoint.y;
+
+            bulletRadius = screenHeight / 150;
+            bulletSpeed = screenHeight / 3; // going down the screen
+        } else
+        {
+            bullet.x = gunPoint.x;
+            bullet.y = gunPoint.y - (screenHeight / 10);  // move it to near the top of the gun
+
+            bulletRadius = screenHeight / 100;
+            bulletSpeed = -screenHeight / 2; // going up the screen
+        }
         bulletOnScreen = true;
 
         // set Paint
         bulletPaint = new Paint();
         bulletPaint.setColor(Color.RED);
+
     }
 
     public Point getBullet(){
@@ -38,7 +51,7 @@ public class Bullet {
     }
 
     public void updateBullet(double interval){
-        bullet.y += interval * bulletVelocityY;
+        bullet.y += interval * bulletSpeed;
     }
 
     public boolean checkOnScreen(){
@@ -56,5 +69,9 @@ public class Bullet {
 
     public Paint getBulletPaint(){
         return bulletPaint;
+    }
+
+    public boolean isEnemyBullet(){
+        return enemyBullet;
     }
 }

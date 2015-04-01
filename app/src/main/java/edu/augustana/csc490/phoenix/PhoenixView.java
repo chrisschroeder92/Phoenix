@@ -17,6 +17,9 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -31,21 +34,23 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     private boolean dialogIsDisplayed = false;
 
+    private double totalElapsedTime;
+
+    private double bulletFiredTime;
+
     private boolean gameOver;
 
     private Enemies enemies;
 
-    ArrayList<Bullet> bullets;
+    private ArrayList<Bullet> bullets;
 
-    Gun gun;
+    private Random rand;
 
-    //private Point gunPoint;
+    private Gun gun;
 
     private int screenWidth;
     private int screenHeight;
 
-    //Paints
-    //private Paint textPaint;
     private Paint backgroundPaint;
 
 
@@ -56,13 +61,10 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
         getHolder().addCallback(this);
 
-        //textPaint = new Paint();
-
         backgroundPaint = new Paint();
         backgroundPaint.setColor(Color.BLACK);
 
     }
-
 
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -75,19 +77,20 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
         bullets = new ArrayList<>();
 
+        rand = new Random();
+
         gun = new Gun(screenWidth, screenHeight);
 
-        enemies = new Enemies(new Point(screenWidth / 2, screenHeight / 5), screenWidth / 15);
-        enemies.setVelocity(screenWidth / 25);
-
-        //textPaint.setTextSize(w / 20);
-        //textPaint.setAntiAlias(true);
+        enemies = new Enemies(new Point(screenWidth / 2, screenHeight / 4), screenWidth / 20);
+        enemies.setVelocity(screenWidth / 30);
 
         if (gameOver) {
             gameOver = false;
             phoenixThread = new PhoenixThread(getHolder());
             phoenixThread.start();
         }
+
+        setBulletFireTiming();
     }
 
     private void updatePositions(double elapsedTime) {
@@ -96,26 +99,70 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
             for (int i=0; i<bullets.size(); i++){
                 Bullet bullet = bullets.get(i);
-                bullet.updateBullet(interval);
+                bullets.get(i).updateBullet(interval);
                 if (!bullet.checkOnScreen()){
                     bullets.remove(i);
                 }
             }
 
         for (int i=0; i<bullets.size(); i++) {
-            if (enemies.isHit(bullets.get(i).getBullet(), bullets.get(i).getBulletRadius())) {
-                phoenixThread.setRunning(false);
-                showGameOverDialog(R.string.won);
-                gameOver = true;
+            if (!bullets.get(i).isEnemyBullet()){
+                if (enemies.isHit(bullets.get(i).getBullet(), bullets.get(i).getBulletRadius())) {
+                    bullets.remove(i);
+                }
+                if (enemies.areAllHit()){
+                    stopGame();
+                    showGameOverDialog(R.string.won);
+                    gameOver = true;
+                }
+            } else{
+                if (gun.isHit(bullets.get(i).getBullet(), bullets.get(i).getBulletRadius())){
+                    stopGame();
+                    showGameOverDialog(R.string.lost);
+                    gameOver = true;
+                }
             }
+
         }
 
         enemies.updatePosition(interval);
     }
 
+    public void fireRandomBullet(int num){
+        if (5 == num){
+            int enemyNum = rand.nextInt(enemies.getSize());
+            bullets.add(new Bullet(enemies.getPosition(enemyNum), screenHeight, true));
+        }
+    }
+
+    public void setBulletFireTiming(){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                new Timer().scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        fireRandomBullet(rand.nextInt(50));
+                    }
+                }, 100, 100);
+            }
+        }).start();
+
+    }
+
     public void fireBullet() {
 
-        bullets.add(new Bullet(gun.getGunPoint(), screenHeight));
+        double timeBetweenBullets = totalElapsedTime - bulletFiredTime;
+
+        Log.e(TAG, Double.toString(timeBetweenBullets));
+
+        if (timeBetweenBullets > 0.5) {
+            bullets.add(new Bullet(gun.getGunPoint(), screenHeight, false));
+            bulletFiredTime = totalElapsedTime;
+        }else{
+            return;
+        }
     }
 
 
@@ -253,7 +300,7 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                     synchronized (surfaceHolder) {
                         long currentTime = System.currentTimeMillis();
                         double elapsedTimeMS = currentTime - previousFrameTime;
-                        //totalElapsedTime += elapsedTimeMS / 1000.0;
+                        totalElapsedTime += elapsedTimeMS / 1000.0;
                         updatePositions(elapsedTimeMS); // update game state
                         drawGameElements(canvas); // draw using the canvas
                         previousFrameTime = currentTime; // update previous time

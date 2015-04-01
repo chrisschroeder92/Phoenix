@@ -2,5 +2,6 @@
     <string name="app_name">Phoenix</string>
     <string name="action_settings">Settings</string>
     <string name="won">You Won!</string>
+    <string name="lost">You Lost!</string>
     <string name="reset_game">Reset Game</string>
 </resources>

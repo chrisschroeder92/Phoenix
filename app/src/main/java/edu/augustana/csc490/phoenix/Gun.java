@@ -46,15 +46,16 @@ public class Gun {
         return gunBaseRadius;
     }
 
-    public void setRadius(int radius){
-        gunBaseRadius = radius;
-    }
-
     public Paint getPaint(){
         return gunPaint;
     }
 
-    public void setPaint(Paint p){
-        gunPaint = p;
+    public boolean isHit(Point bullet, int bulletRadius) {
+        if (Math.abs(bullet.x - gunPoint.x) < (bulletRadius + gunBaseRadius) &&
+                Math.abs(bullet.y - gunPoint.y) < (bulletRadius + gunBaseRadius)) {
+            return true;
+        }
+        return false;
     }
+
 }
