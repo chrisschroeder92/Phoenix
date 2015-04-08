@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -30,27 +31,26 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
     public PhoenixThread phoenixThread;
     private Activity activity;
 
+    SharedPreferences highScore;
+
     private static final String TAG = "Phoenix"; // for Log.w(TAG, ...)
 
     private boolean dialogIsDisplayed = false;
-
-    private double totalElapsedTime;
-
-    private double bulletFiredTime;
-
     private boolean gameOver;
 
+    // game timing
+    private double totalElapsedTime;
+    private double bulletFiredTime;
+
+    // game elements
     private Enemies enemies;
-
     private ArrayList<Bullet> bullets;
-
-    private Random rand;
-
     private Gun gun;
+    private Random rand; // random number for bullet generation
 
+    // game parameters
     private int screenWidth;
     private int screenHeight;
-
     private Paint backgroundPaint;
 
 
@@ -75,22 +75,21 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void newGame() {
 
+        // initilize elements
         bullets = new ArrayList<>();
-
-        rand = new Random();
-
         gun = new Gun(screenWidth, screenHeight);
-
         enemies = new Enemies(new Point(screenWidth / 2, screenHeight / 4), screenWidth / 20);
         enemies.setVelocity(screenHeight / 30);
+        rand = new Random();
+        setBulletFireTiming();
+
+        highScore = getContext().getSharedPreferences("HighScore", Context.MODE_PRIVATE);
 
         if (gameOver) {
             gameOver = false;
             phoenixThread = new PhoenixThread(getHolder());
             phoenixThread.start();
         }
-
-        setBulletFireTiming();
     }
 
     private void updatePositions(double elapsedTime) {
@@ -142,21 +141,19 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void setBulletFireTiming(){
 
-                new Timer().scheduleAtFixedRate(new TimerTask() {
+        new Timer().scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        if (enemies.getSize()==0){
-                            return;
-                        }
-                        fireRandomBullet(rand.nextInt(25));
-                    }
-                }, 100, 100);
-
+            if (enemies.getSize()==0){ // prevents error when game is over -- will have to change so when the game is over, the timer stops.
+                return;
+            }
+                fireRandomBullet(rand.nextInt(25));
+         }}, 100, 100);
     }
 
     public void fireBullet() {
 
-        double timeBetweenBullets = totalElapsedTime - bulletFiredTime;  // currently set to only 2 bullet firings a second
+        double timeBetweenBullets = totalElapsedTime - bulletFiredTime;  // currently set to only 2 bullet firings a second by the user
 
         if (timeBetweenBullets > 0.5) {
             bullets.add(new Bullet(gun.getGunPoint(), screenHeight, false));
@@ -165,7 +162,6 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
     }
-
 
     public void moveGun(MotionEvent event) {
 
@@ -200,23 +196,39 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
     private void showGameOverDialog(boolean won) {
 
         final int points;
-        final int messageID;
+        final boolean loser;
+        boolean highScorer = false;
+
+        int highScoreInt = highScore.getInt("HighScore", 0);
 
         if(won){
             points = calculatePoints();
-            messageID = R.string.won;
+            if (points > highScoreInt){
+                highScore.edit().putInt("HighScore", points).commit();
+                highScorer = true;
+            }
+            loser = false;
         } else{
             points = 0;
-            messageID = R.string.lost;
+            loser = true;
         }
+
+        final boolean highScorer1 = highScorer; // need to do something better here;
 
         final DialogFragment gameResult = new DialogFragment() {
 
             public Dialog onCreateDialog(Bundle bundle) {
                 AlertDialog.Builder builder =
                         new AlertDialog.Builder(getActivity());
-                builder.setTitle(getResources().getString(messageID));
-                builder.setMessage("Total Points: " + points);
+                if (loser){
+                    builder.setTitle(getResources().getString(R.string.lost));
+                } else if (highScorer1) {
+                    builder.setTitle(getResources().getString(R.string.topScore));
+                } else{
+                    builder.setTitle(getResources().getString(R.string.won));
+                }
+
+                builder.setMessage("Total Points: " + points + '\n' + "High Score: " + highScore.getInt("HighScore", 0));
                 builder.setPositiveButton(R.string.reset_game,
                         new DialogInterface.OnClickListener() {
                             // called when "Reset Game" Button is pressed

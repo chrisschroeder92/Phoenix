@@ -4,4 +4,5 @@
     <string name="won">You Won!</string>
     <string name="lost">You Lost!</string>
     <string name="reset_game">Reset Game</string>
+    <string name="topScore">You Won--HIGH SCORE!</string>
 </resources>
