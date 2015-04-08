@@ -54,8 +54,8 @@ public class Bullet {
         bullet.y += interval * bulletSpeed;
     }
 
-    public boolean checkOnScreen(){
-        if (bullet.y - bulletRadius < 0) {
+    public boolean checkOnScreen(int gunRadius){
+        if (bullet.y - bulletRadius - (gunRadius) <= 0) {
             bulletOnScreen = false;
             return bulletOnScreen;
         } else {

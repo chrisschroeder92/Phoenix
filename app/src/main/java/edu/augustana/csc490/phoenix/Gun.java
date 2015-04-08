@@ -4,9 +4,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 
-/**
- * Created by cschroeder on 3/30/15.
- */
 public class Gun {
 
     private int gunBaseRadius;
@@ -51,11 +48,15 @@ public class Gun {
     }
 
     public boolean isHit(Point bullet, int bulletRadius) {
-        if (Math.abs(bullet.x - gunPoint.x) < (bulletRadius + gunBaseRadius) &&
-                Math.abs(bullet.y - gunPoint.y) < (bulletRadius + gunBaseRadius)) {
-            return true;
-        }
-        return false;
+
+        int bulletDiameter = bulletRadius * 2;
+
+        if (Math.abs(bullet.x - gunPoint.x) < (bulletDiameter + gunBaseRadius) &&
+                Math.abs(bullet.y - gunPoint.y) < (bulletDiameter + gunBaseRadius / 2))
+        { return true; }
+
+        else { return false; }
+
     }
 
 }

@@ -82,7 +82,7 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
         gun = new Gun(screenWidth, screenHeight);
 
         enemies = new Enemies(new Point(screenWidth / 2, screenHeight / 4), screenWidth / 20);
-        enemies.setVelocity(screenWidth / 30);
+        enemies.setVelocity(screenHeight / 30);
 
         if (gameOver) {
             gameOver = false;
@@ -100,7 +100,7 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
             for (int i=0; i<bullets.size(); i++){
                 Bullet bullet = bullets.get(i);
                 bullets.get(i).updateBullet(interval);
-                if (!bullet.checkOnScreen()){
+                if (!bullet.checkOnScreen(gun.getRadius())){
                     bullets.remove(i);
                 }
             }
@@ -112,20 +112,25 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                 }
                 if (enemies.areAllHit()){
                     stopGame();
-                    showGameOverDialog(R.string.won);
+                    showGameOverDialog(true);
+                    Log.e(TAG, Double.toString(totalElapsedTime));
                     gameOver = true;
                 }
             } else{
                 if (gun.isHit(bullets.get(i).getBullet(), bullets.get(i).getBulletRadius())){
                     stopGame();
-                    showGameOverDialog(R.string.lost);
+                    showGameOverDialog(false);
                     gameOver = true;
                 }
             }
 
         }
 
-        enemies.updatePosition(interval);
+        if (!enemies.updatePosition(interval, screenHeight) ){
+            stopGame();
+            showGameOverDialog(false);
+            gameOver = true;
+        }
     }
 
     public void fireRandomBullet(int num){
@@ -137,25 +142,21 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void setBulletFireTiming(){
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
                 new Timer().scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        fireRandomBullet(rand.nextInt(50));
+                        if (enemies.getSize()==0){
+                            return;
+                        }
+                        fireRandomBullet(rand.nextInt(25));
                     }
                 }, 100, 100);
-            }
-        }).start();
 
     }
 
     public void fireBullet() {
 
-        double timeBetweenBullets = totalElapsedTime - bulletFiredTime;
-
-        Log.e(TAG, Double.toString(timeBetweenBullets));
+        double timeBetweenBullets = totalElapsedTime - bulletFiredTime;  // currently set to only 2 bullet firings a second
 
         if (timeBetweenBullets > 0.5) {
             bullets.add(new Bullet(gun.getGunPoint(), screenHeight, false));
@@ -196,14 +197,26 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     // Mostly Copied from CannonGame
-    private void showGameOverDialog(final int messageId) {
+    private void showGameOverDialog(boolean won) {
+
+        final int points;
+        final int messageID;
+
+        if(won){
+            points = calculatePoints();
+            messageID = R.string.won;
+        } else{
+            points = 0;
+            messageID = R.string.lost;
+        }
 
         final DialogFragment gameResult = new DialogFragment() {
 
             public Dialog onCreateDialog(Bundle bundle) {
                 AlertDialog.Builder builder =
                         new AlertDialog.Builder(getActivity());
-                builder.setTitle(getResources().getString(messageId));
+                builder.setTitle(getResources().getString(messageID));
+                builder.setMessage("Total Points: " + points);
                 builder.setPositiveButton(R.string.reset_game,
                         new DialogInterface.OnClickListener() {
                             // called when "Reset Game" Button is pressed
@@ -228,6 +241,11 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 } // end Runnable
         ); // end call to runOnUiThread
+    }
+
+    private int calculatePoints(){
+
+        return (int) (totalElapsedTime * 1000);
     }
 
     public void stopGame() {
