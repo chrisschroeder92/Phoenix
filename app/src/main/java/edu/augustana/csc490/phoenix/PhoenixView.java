@@ -96,13 +96,13 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
         double interval = elapsedTime / 1000.0;
 
-            for (int i=0; i<bullets.size(); i++){
-                Bullet bullet = bullets.get(i);
-                bullets.get(i).updateBullet(interval);
-                if (!bullet.checkOnScreen(gun.getRadius())){
-                    bullets.remove(i);
-                }
+        for (int i=0; i<bullets.size(); i++){
+            Bullet bullet = bullets.get(i);
+            bullets.get(i).updateBullet(interval);
+            if (!bullet.checkOnScreen(gun.getRadius())){
+                bullets.remove(i);
             }
+        }
 
         for (int i=0; i<bullets.size(); i++) {
             if (!bullets.get(i).isEnemyBullet()){
@@ -122,7 +122,6 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                     gameOver = true;
                 }
             }
-
         }
 
         if (!enemies.updatePosition(interval, screenHeight) ){
@@ -142,13 +141,13 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
     public void setBulletFireTiming(){
 
         new Timer().scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-            if (enemies.getSize()==0){ // prevents error when game is over -- will have to change so when the game is over, the timer stops.
-                return;
-            }
-                fireRandomBullet(rand.nextInt(25));
-         }}, 100, 100);
+            @Override
+            public void run() {
+                if (enemies.getSize()==0){ // prevents error when game is over -- will have to change so when the game is over, the timer stops.
+                    return;
+                }
+                fireRandomBullet(rand.nextInt(20));
+            }}, 100, 100);
     }
 
     public void fireBullet() {
@@ -257,7 +256,7 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     private int calculatePoints(){
 
-        return (int) (totalElapsedTime * 1000);
+        return (int) ((100.0 - totalElapsedTime) * 1000);
     }
 
     public void stopGame() {
