@@ -63,7 +63,6 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
         backgroundPaint = new Paint();
         backgroundPaint.setColor(Color.BLACK);
-
     }
 
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -113,13 +112,12 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                     stopGame();
                     showGameOverDialog(true);
                     Log.e(TAG, Double.toString(totalElapsedTime));
-                    gameOver = true;
                 }
             } else{
                 if (gun.isHit(bullets.get(i).getBullet(), bullets.get(i).getBulletRadius())){
                     stopGame();
                     showGameOverDialog(false);
-                    gameOver = true;
+
                 }
             }
         }
@@ -127,7 +125,6 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
         if (!enemies.updatePosition(interval, screenHeight) ){
             stopGame();
             showGameOverDialog(false);
-            gameOver = true;
         }
     }
 
@@ -226,15 +223,14 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
                 } else{
                     builder.setTitle(getResources().getString(R.string.won));
                 }
-
                 builder.setMessage("Total Points: " + points + '\n' + "High Score: " + highScore.getInt("HighScore", 0));
                 builder.setPositiveButton(R.string.reset_game,
                         new DialogInterface.OnClickListener() {
                             // called when "Reset Game" Button is pressed
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                dialogIsDisplayed = false;
                                 newGame(); // set up and start a new game
+                                dialogIsDisplayed = false;
                             }
                         } // end anonymous inner class
                 );
@@ -256,11 +252,12 @@ public class PhoenixView extends SurfaceView implements SurfaceHolder.Callback {
 
     private int calculatePoints(){
 
-        return (int) ((100.0 - totalElapsedTime) * 1000);
+        return (int) ((150.0 - totalElapsedTime) * 1000);  // A very crude way of calculating
     }
 
     public void stopGame() {
         if (phoenixThread != null) {
+            gameOver = true;
             phoenixThread.setRunning(false);
         }
     }
